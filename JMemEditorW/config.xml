@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment/>
+<entry key="filterIncreased">false</entry>
+<entry key="Y">-4</entry>
+<entry key="X">-4</entry>
+<entry key="limitCount">65536</entry>
+<entry key="holdType">1</entry>
+<entry key="valueStart">6542</entry>
+<entry key="filterChanged">true</entry>
+<entry key="WindowStatus">6</entry>
+<entry key="addressRW">$036990BB</entry>
+<entry key="filterUnchanged">false</entry>
+<entry key="Height">748</entry>
+<entry key="valueEnd"/>
+<entry key="filterDecreased">false</entry>
+<entry key="valueRW">6635</entry>
+<entry key="cycleTime">10</entry>
+<entry key="addressEnd"/>
+<entry key="addressStart"/>
+<entry key="valueType">2</entry>
+<entry key="Width">1032</entry>
+</properties>
