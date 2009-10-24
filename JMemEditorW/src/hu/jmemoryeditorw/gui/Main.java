@@ -1735,7 +1735,7 @@ public class Main extends JFrame {
 							break;
 						// DECREASED
 						case 3:
-							if (compare(oldValue, newValue) > 0) {
+							if (compare(oldValue, newValue) <= 0) {
 								currentValues.remove(i);
 							} else {
 								e.prevValue = e.value.clone();
