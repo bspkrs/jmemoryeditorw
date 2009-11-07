@@ -387,7 +387,7 @@ public class Main extends JFrame {
 	 * Builds the layout.
 	 */
 	private void init() {
-		setTitle("Memory Editor v2.0 - Java Implementation");
+		setTitle("Memory Editor v2.2 - Java Implementation");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -1204,31 +1204,68 @@ public class Main extends JFrame {
 		return result;
 	}
 	/** Find the addresses which are have value in the specified range. */
-	public static Map<Integer, byte[]> findByteRange(byte[] buffer, int len, byte[] valueStart, byte[] valueEnd, byte[] wrap, boolean firstTime) {
+	public static Map<Integer, byte[]> findByteRange(byte[] buffer, int len, byte[] valueStart, 
+			byte[] valueEnd, byte[] wrap, boolean firstTime, int valueType) {
 		Map<Integer, byte[]> result = Maps.newLinkedHashMap();
 		if (wrap != null && !firstTime) {
 			// create a small combined buffer from wrap and the beginning of buffer
 			byte[] cb = new byte[2 * wrap.length];
 			System.arraycopy(wrap, 0, cb, 0, wrap.length);
 			System.arraycopy(buffer, 0, cb, wrap.length, wrap.length);
-			findBytesRange(cb, 0, cb.length, valueStart, valueEnd, result, -wrap.length);
+			findBytesRange(cb, 0, cb.length, valueStart, valueEnd, result, -wrap.length, valueType);
 		}
-		findBytesRange(buffer, 0, len, valueStart, valueEnd, result, 0);
+		findBytesRange(buffer, 0, len, valueStart, valueEnd, result, 0, valueType);
 		// memorize the current buffer's last part
 		if (wrap != null) {
 			System.arraycopy(buffer, len - wrap.length - 1, wrap, 0, wrap.length);
 		}
 		return result;
 	}
+	/** Convert subsequent bytes to big endian int. */
+	private static int toInt(byte[] data) {
+		return toInt(data, 0);
+	}
+	/** Convert subsequent bytes to big endian int. */
+	private static int toInt(byte[] data, int start) {
+		return ((data[start + 0] & 0xFF) << 24) | ((data[start + 1] & 0xFF) << 16) 
+		| ((data[start + 2] & 0xFF) << 8) | (data[start + 3] & 0xFF);
+	}
+	/** Convert subsequent bytes to big endian long. */
+	private static long toLong(byte[] data, int start) {
+		return ((data[start + 0] & 0xFFL) << 56) | ((data[start + 1] & 0xFFL) << 48) | ((data[start + 2] & 0xFFL) << 40) | ((data[start + 3] & 0xFFL) << 32)
+		| ((data[start + 4] & 0xFFL) << 24) | ((data[start + 5] & 0xFFL) << 16) | ((data[start + 6] & 0xFFL) << 16) | (data[start + 7] & 0xFFL);
+	}
 	/** Find addresses of values in specified range. */
-	private static void findBytesRange(byte[] buffer, int start, int len, byte[] valueStart, byte[] valueEnd, Map<Integer, byte[]> result, int bias) {
+	private static void findBytesRange(byte[] buffer, int start, int len, byte[] valueStart, byte[] valueEnd, 
+			Map<Integer, byte[]> result, int bias, int valueType) {
 		outerloop:
 			for (int i = start, count = len - valueStart.length + 1; i < count; i++) {
-				for (int j = valueStart.length - 1; j >= 0; j--) {
-					int b = buffer[i + j] & 0xFF;
-					int v1 = valueStart[j] & 0xFF;
-					int v2 = valueEnd[j] &0xFF;
-					if (b < v1 || b > v2) {
+				if (valueType < 4) {
+					for (int j = valueStart.length - 1; j >= 0; j--) {
+						int b = buffer[i + j] & 0xFF;
+						int v1 = valueStart[j] & 0xFF;
+						int v2 = valueEnd[j] &0xFF;
+						if (b < v1 || b > v2) {
+							continue outerloop;
+						}
+					}
+				} else
+				if (valueType == 4) {
+					// compare float
+					float f1 = Float.intBitsToFloat(toInt(valueStart));
+					float f2 = Float.intBitsToFloat(toInt(valueEnd));
+					float b = Float.intBitsToFloat(toInt(buffer, i));
+					if (Float.isNaN(b) || f1 > b || b > f2) {
+						continue outerloop;
+					}
+				// DOUBLE
+				} else
+				if (valueType == 5) {
+					// compare double
+					double f1 = Double.longBitsToDouble(toLong(valueStart, 0));
+					double f2 = Double.longBitsToDouble(toLong(valueEnd, 0));
+					double b = Double.longBitsToDouble(toLong(buffer, i));
+					if (Double.isNaN(b) || f1 > b || b > f2) {
 						continue outerloop;
 					}
 				}
@@ -1323,7 +1360,8 @@ public class Main extends JFrame {
 							int readSize = remainingSize > buffer.length ? buffer.length : remainingSize;
 							if (k32.ReadProcessMemory(hProcess, mi.BaseAddress + readOffset, buffer, readSize, bytesRead)) {
 								if (endValue == null) {
-									for (Integer i : findBytes(buffer, bytesRead.getValue(), value, wrap, readOffset == 0)) {
+									for (Integer i : findBytes(buffer, bytesRead.getValue(), value, 
+											wrap, readOffset == 0)) {
 										if (isCancelled() || found >= limit) {
 											break;
 										}
@@ -1336,7 +1374,8 @@ public class Main extends JFrame {
 										publish(new int[] { mi.BaseAddress + readOffset + i, found });
 									}
 								} else {
-									for (Map.Entry<Integer, byte[]> e : findByteRange(buffer, bytesRead.getValue(), value, endValue, wrap, readOffset == 0).entrySet()) {
+									for (Map.Entry<Integer, byte[]> e : findByteRange(buffer, bytesRead.getValue(),
+											value, endValue, wrap, readOffset == 0, valueType).entrySet()) {
 										if (isCancelled() || found >= limit) {
 											break;
 										}
@@ -1455,10 +1494,10 @@ public class Main extends JFrame {
 			try {
 				int val = Float.floatToRawIntBits(Float.parseFloat(s));
 				result = new byte[4];
-				result[0] = (byte)(val & 0xFFL);
-				result[1] = (byte)((val >> 8) & 0xFFL);
-				result[2] = (byte)((val >> 16) & 0xFFL);
-				result[3] = (byte)((val >> 24) & 0xFFL);
+				result[0] = (byte)((val >> 24) & 0xFFL);
+				result[1] = (byte)((val >> 16) & 0xFFL);
+				result[2] = (byte)((val >> 8) & 0xFFL);
+				result[3] = (byte)(val & 0xFFL);
 			} catch (NumberFormatException ex) {
 				
 			}
@@ -1467,14 +1506,14 @@ public class Main extends JFrame {
 		case 5:
 			long val = Double.doubleToRawLongBits(Double.parseDouble(s));
 			result = new byte[8];
-			result[0] = (byte)(val & 0xFFL);
-			result[1] = (byte)((val >> 8) & 0xFFL);
-			result[2] = (byte)((val >> 16) & 0xFFL);
-			result[3] = (byte)((val >> 24) & 0xFFL);
-			result[4] = (byte)((val >> 32) & 0xFFL);
-			result[5] = (byte)((val >> 40) & 0xFFL);
-			result[6] = (byte)((val >> 48) & 0xFFL);
-			result[7] = (byte)((val >> 56) & 0xFFL);
+			result[7] = (byte)(val & 0xFFL);
+			result[6] = (byte)((val >> 8) & 0xFFL);
+			result[5] = (byte)((val >> 16) & 0xFFL);
+			result[4] = (byte)((val >> 24) & 0xFFL);
+			result[3] = (byte)((val >> 32) & 0xFFL);
+			result[2] = (byte)((val >> 40) & 0xFFL);
+			result[1] = (byte)((val >> 48) & 0xFFL);
+			result[0] = (byte)((val >> 56) & 0xFFL);
 			break;
 		}
 		return result;
@@ -1610,43 +1649,65 @@ public class Main extends JFrame {
 	 */
 	private static Object foundValueToString(byte[] value, int valueType) {
 		byte[] val = value.clone();
-		reverse(val);
 		switch (valueType) {
 		// BYTE
 		case 0:
+			reverse(val);
 			return value[0];
 		// SHORT
 		case 1:
+			reverse(val);
 			return new BigInteger(val).shortValue();
 		// INT
 		case 2:
+			reverse(val);
 			return new BigInteger(val).intValue();
 		// LONG
 		case 3:
+			reverse(val);
 			return new BigInteger(val).longValue();
 		// FLOAT
 		case 4:
-			int v = (val[0] << 24) | (val[1] << 16) | (val[2] << 8) | val[3];
-			return Float.intBitsToFloat(v);
+			return Float.intBitsToFloat(toInt(val));
 		// DOUBLE
 		case 5:
-			long l = (val[0] << 56) | (val[1] << 48) | (val[2] << 40) | (val[3] << 32)
-				| (val[4] << 24) | (val[5] << 16) | (val[6] << 16) | val[7];
-			return Double.longBitsToDouble(l);
+			return Double.longBitsToDouble(toLong(val, 0));
 		}
 		return Arrays.toString(value);
 	}
 	/** Compare two arrays. */
-	public static int compare(byte[] value1, byte[] value2) {
+	public static int compare(byte[] value1, byte[] value2, int valueType) {
 		int len = value1.length > value2.length ? value2.length : value1.length;
-		for (int i = len - 1; i >= 0; i--) {
-			int v1 = value1[i] & 0xFF;
-			int v2 = value2[i] & 0xFF;
-			if (v1 > v2) {
-				return 1;
-			} else
-			if (v1 < v2) {
+		if (valueType < 4) {
+			for (int i = len - 1; i >= 0; i--) {
+				int v1 = value1[i] & 0xFF;
+				int v2 = value2[i] & 0xFF;
+				if (v1 > v2) {
+					return 1;
+				} else
+				if (v1 < v2) {
+					return -1;
+				}
+			}
+		} else
+		if (valueType == 4) {
+			float f1 = Float.intBitsToFloat(toInt(value1));
+			float f2 = Float.intBitsToFloat(toInt(value2));
+			if (f1 < f2) {
 				return -1;
+			} else
+			if (f1 > f2) {
+				return 1;
+			}
+		} else
+		if (valueType == 5) {
+			double f1 = Double.longBitsToDouble(toLong(value1, 0));
+			double f2 = Double.longBitsToDouble(toLong(value2, 0));
+			if (f1 < f2) {
+				return -1;
+			} else
+			if (f1 > f2) {
+				return 1;
 			}
 		}
 		return 0;
@@ -1659,11 +1720,11 @@ public class Main extends JFrame {
 			for (int i = resultListModel.size() - 1; i >= 0; i--) {
 				ValueFound vf = (ValueFound)resultListModel.get(i);
 				if (val2 != null) {
-					if (compare(val1, vf.value) > 0 || compare(vf.value, val2) > 0) {
+					if (compare(val1, vf.value, valueType.getSelectedIndex()) > 0 || compare(vf.value, val2, valueType.getSelectedIndex()) > 0) {
 						resultListModel.remove(i);
 					}
 				} else {
-					if (compare(vf.value, val1) != 0) {
+					if (compare(vf.value, val1, valueType.getSelectedIndex()) != 0) {
 						resultListModel.remove(i);
 					}
 				}
@@ -1683,10 +1744,13 @@ public class Main extends JFrame {
 		private final List<ValueFound> currentValues = Lists.newArrayList();
 		/** The original size. */
 		private final int originalSize;
+		/** The value type. */
+		private final int valueType;
 		/** Constructor. */
-		public ValueDiffFinder(int processId, int diffMode, Enumeration<?> values) {
+		public ValueDiffFinder(int processId, int diffMode, Enumeration<?> values, int valueType) {
 			this.processId = processId;
 			this.diffMode = diffMode;
+			this.valueType = valueType;
 			int i = 0;
 			while (values.hasMoreElements()) {
 				currentValues.add(new ValueFound((ValueFound)values.nextElement()));
@@ -1711,7 +1775,7 @@ public class Main extends JFrame {
 						switch (diffMode) {
 						// CHANGED
 						case 0:
-							if (compare(oldValue, newValue) == 0) {
+							if (compare(oldValue, newValue, valueType) == 0) {
 								currentValues.remove(i);
 							} else {
 								e.prevValue = e.value.clone();
@@ -1720,13 +1784,13 @@ public class Main extends JFrame {
 							break;
 						// UNCHANGED
 						case 1:
-							if (compare(oldValue, newValue) != 0) {
+							if (compare(oldValue, newValue, valueType) != 0) {
 								currentValues.remove(i);
 							}
 							break;
 						// INCREASED
 						case 2:
-							if (compare(oldValue, newValue) >= 0) {
+							if (compare(oldValue, newValue, valueType) >= 0) {
 								currentValues.remove(i);
 							} else {
 								e.prevValue = e.value.clone();
@@ -1735,7 +1799,7 @@ public class Main extends JFrame {
 							break;
 						// DECREASED
 						case 3:
-							if (compare(oldValue, newValue) <= 0) {
+							if (compare(oldValue, newValue, valueType) <= 0) {
 								currentValues.remove(i);
 							} else {
 								e.prevValue = e.value.clone();
@@ -1807,7 +1871,8 @@ public class Main extends JFrame {
 				break;
 			}
 		}
-		valueDiffFinder = new ValueDiffFinder(processList.get(processBox.getSelectedIndex()).ProcessID, diffMode, resultListModel.elements());
+		valueDiffFinder = new ValueDiffFinder(processList.get(processBox.getSelectedIndex()).ProcessID, 
+				diffMode, resultListModel.elements(), valueType.getSelectedIndex());
 		valueDiffFinder.execute();
 	}
 	/** Do set the address+value field according to the selection in the result list. */
@@ -1987,7 +2052,7 @@ public class Main extends JFrame {
 								switch (vh.holdType) {
 								// EXACTLY
 								case 0:
-									if (compare(vh.value, vh.holdValue) != 0) {
+									if (compare(vh.value, vh.holdValue, vh.valueType) != 0) {
 										if (!k32.WriteProcessMemory(hProcess, vh.address, vh.holdValue, vh.holdValue.length, bread)) {
 											vh.valid = false;
 										}
@@ -1995,7 +2060,7 @@ public class Main extends JFrame {
 									break;
 								// AT LEAST
 								case 1:
-									if (compare(vh.value, vh.holdValue) < 0) {
+									if (compare(vh.value, vh.holdValue, vh.valueType) < 0) {
 										if (!k32.WriteProcessMemory(hProcess, vh.address, vh.holdValue, vh.holdValue.length, bread)) {
 											vh.valid = false;
 										}
@@ -2003,7 +2068,7 @@ public class Main extends JFrame {
 									break;
 								// AT MOST
 								case 2:
-									if (compare(vh.value, vh.holdValue) > 0) {
+									if (compare(vh.value, vh.holdValue, vh.valueType) > 0) {
 										if (!k32.WriteProcessMemory(hProcess, vh.address, vh.holdValue, vh.holdValue.length, bread)) {
 											vh.valid = false;
 										}
