@@ -43,6 +43,8 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
@@ -122,6 +124,8 @@ public class HogClicker extends JFrame {
 	ZoomedScreen popupZoom;
 	/** The zoom screen popped out. */
 	JFrame popupFrame;
+	/** Top-down ordering. */
+	JButton topDown;
 	/** Construct the GUI. */
 	public HogClicker() {
 		super("Hidden Object Game Clicker");
@@ -175,6 +179,7 @@ public class HogClicker extends JFrame {
 		delay = new JTextField(5);
 		delay.setText("1000");
 		JLabel delayLabel = new JLabel("Delay (ms):");
+		delayLabel.setForeground(Color.WHITE);
 		
 		main = new MainScreen();
 		main.points = ps;
@@ -206,6 +211,7 @@ public class HogClicker extends JFrame {
 		});
 		
 		JLabel boxSizeLabel = new JLabel("Size:");
+		boxSizeLabel.setForeground(Color.WHITE);
 		
 		boxColor = new JButton("Color");
 		boxColor.addActionListener(new ActionListener() {
@@ -237,8 +243,9 @@ public class HogClicker extends JFrame {
 		
 		Container c = getContentPane();
 		
-		JLabel processLabel = new JLabel("Process:");
 		
+		JLabel processLabel = new JLabel("Process:");
+		processLabel.setForeground(Color.WHITE);		
 		pointsModel = new DefaultListModel<String>();
 		points.setModel(pointsModel);
 		
@@ -249,6 +256,18 @@ public class HogClicker extends JFrame {
 		mainScroll.getHorizontalScrollBar().setBlockIncrement(48);
 		mainScroll.getVerticalScrollBar().setUnitIncrement(16);
 		mainScroll.getVerticalScrollBar().setBlockIncrement(48);
+
+		c.setBackground(Color.DARK_GRAY);
+		mainScroll.setBackground(Color.DARK_GRAY);
+		main.setBackground(Color.DARK_GRAY);
+
+		topDown = new JButton("TD");
+		topDown.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				doTopDown();
+			}
+		});
 		
 		GroupLayout gl = new GroupLayout(c);
 		c.setLayout(gl);
@@ -277,6 +296,7 @@ public class HogClicker extends JFrame {
 						gl.createSequentialGroup()
 						.addComponent(up)
 						.addComponent(down)
+						.addComponent(topDown)
 					)
 					.addGroup(
 						gl.createSequentialGroup()
@@ -319,6 +339,7 @@ public class HogClicker extends JFrame {
 						gl.createParallelGroup(Alignment.BASELINE)
 						.addComponent(up)
 						.addComponent(down)
+						.addComponent(topDown)
 					)
 					.addGroup(
 						gl.createParallelGroup(Alignment.BASELINE)
@@ -333,7 +354,7 @@ public class HogClicker extends JFrame {
 					)
 					.addComponent(sp)
 					.addComponent(execute)
-					.addComponent(zoom, 128, 128, 128)
+					.addComponent(zoom, 128, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
 				)
 				.addComponent(mainScroll, 1, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
 			)
@@ -411,6 +432,8 @@ public class HogClicker extends JFrame {
 		}
 		@Override
 		public void paint(Graphics g) {
+			g.setColor(getBackground());
+			g.fillRect(0, 0, getWidth(), getHeight());
 			g.setColor(Color.BLACK);
 			g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 			if (image != null) {
@@ -711,5 +734,22 @@ public class HogClicker extends JFrame {
 		zoom.repaint();
 		popupZoom.location = zoom.location;
 		popupZoom.repaint();
+	}
+	/** Reorder points top-down. */
+	void doTopDown() {
+		Collections.sort(ps, new Comparator<Point>() {
+			@Override
+			public int compare(Point o1, Point o2) {
+				int c = Integer.compare(o1.y, o2.y);
+				if (c == 0) {
+					c = Integer.compare(o1.x, o2.x);
+				}
+				return c;
+			}
+		});
+		pointsModel.clear();
+		for (Point p : ps) {
+			pointsModel.addElement(p.x + ", " + p.y);
+		}
 	}
 }
