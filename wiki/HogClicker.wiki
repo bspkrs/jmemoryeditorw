@@ -19,5 +19,6 @@ Best option is to run your HOG game in windowed mode and start the Windows' *Mag
   # Hold SHIFT and click on an existing point to remove it
   # You can re-order the points listed in the left, remove or clear them
   # You can change the click-indicator box color and size
+  # Adjust the delay between clicks
   # Click on the left zoom window to open a popup window which you can resize and magnify as you see fit.
   # Once finished, click the Execute button
