@@ -240,6 +240,7 @@ public class HogClicker extends JFrame {
 		});
 		
 		statusLine = new JLabel();
+		statusLine.setForeground(Color.WHITE);
 		
 		Container c = getContentPane();
 		
@@ -311,7 +312,7 @@ public class HogClicker extends JFrame {
 					)
 					.addComponent(sp, 128, 128, 128)
 					.addComponent(execute)
-					.addComponent(zoom, 128, 128, 128)
+					.addComponent(zoom, 160, 160, 160)
 				)
 				.addComponent(mainScroll, 1, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
 			)
@@ -354,7 +355,7 @@ public class HogClicker extends JFrame {
 					)
 					.addComponent(sp)
 					.addComponent(execute)
-					.addComponent(zoom, 128, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+					.addComponent(zoom, 160, 160, 160)
 				)
 				.addComponent(mainScroll, 1, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
 			)
@@ -641,9 +642,10 @@ public class HogClicker extends JFrame {
 			protected Void doInBackground() throws Exception {
 				Rect r = new Rect();
 				User32.INSTANCE.GetWindowRect(currentWindow, r);
-				User32.INSTANCE.SetForegroundWindow(currentWindow);
 				try {
 					int d = Integer.parseInt(delay.getText());
+					Thread.sleep(d);
+					User32.INSTANCE.SetForegroundWindow(currentWindow);
 					Thread.sleep(d);
 					Robot rob = new Robot();
 					for (Point p : ps) {
@@ -751,5 +753,6 @@ public class HogClicker extends JFrame {
 		for (Point p : ps) {
 			pointsModel.addElement(p.x + ", " + p.y);
 		}
+		repaint();
 	}
 }
