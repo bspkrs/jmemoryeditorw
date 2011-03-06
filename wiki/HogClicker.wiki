@@ -21,4 +21,6 @@ Best option is to run your HOG game in windowed mode and start the Windows' *Mag
   # You can change the click-indicator box color and size
   # Adjust the delay between clicks
   # Click on the left zoom window to open a popup window which you can resize and magnify as you see fit.
-  # Once finished, click the Execute button
+  # Once finished, click the *Execute* button
+
+When you click the *Execute* button, the game window will pop up after the specified delay, and after waiting again, the clicking is emulated. You may let go your mouse to let the program do its job.
