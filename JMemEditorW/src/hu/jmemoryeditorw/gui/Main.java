@@ -340,9 +340,18 @@ public class Main extends JFrame {
 //			super.fireContentsChanged(this, 0, getSize() - 1);
 //		}
 //	}
-	class ProcessListRenderer extends DefaultListCellRenderer {
+	public static class ProcessListRenderer extends DefaultListCellRenderer {
 		/** */
 		private static final long serialVersionUID = -9175136304178115221L;
+		/** The process list. */
+		final List<ProcessData> pl;
+		/**
+		 * Constructor.
+		 * @param pd the process list.
+		 */
+		public ProcessListRenderer(List<ProcessData> pl) {
+			this.pl = pl;
+		}
 		@Override
 		public Component getListCellRendererComponent(
 		                       JList list,
@@ -353,8 +362,8 @@ public class Main extends JFrame {
 			JLabel lbl = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 			if (value instanceof Integer) {
 				int idx = ((Integer)value);
-				if (idx >= 0 && idx < processList.size()) {
-					ProcessData pd = processList.get(idx);
+				if (idx >= 0 && idx < pl.size()) {
+					ProcessData pd = pl.get(idx);
 					lbl.setIcon(pd.icon16);
 					if (pd.WindowText.length() > 70) {
 						lbl.setText(pd.WindowText.substring(0, 70) + "... (" + pd.ProcessID + ")");
@@ -404,7 +413,7 @@ public class Main extends JFrame {
 		
 		JLabel processLabel = new JLabel("Processes:");
 		processBox = new JComboBox();
-		processBox.setRenderer(new ProcessListRenderer());
+		processBox.setRenderer(new ProcessListRenderer(processList));
 		processBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

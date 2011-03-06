@@ -8,6 +8,7 @@
 package hu.jmemoryeditorw.jna;
 
 import com.sun.jna.Native;
+import com.sun.jna.Pointer;
 import com.sun.jna.WString;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
@@ -115,7 +116,12 @@ public interface User32 extends StdCallLibrary {
 	 * (or previous) child window.
 	 */
 	int GetWindow(int hWnd, int wCmd);
-
+	/**
+	 * Retrieves the desktop window handle which is the base window for
+	 * all other windows.
+	 * @return the handle to the desktop window
+	 */
+	int GetDesktopWindow();
 	/** Returns a handle to the window below the given window. */
 	int GW_HWNDNEXT = 2;
 	/** Returns a handle to the window above the given window. */
@@ -310,4 +316,33 @@ public interface User32 extends StdCallLibrary {
 	int ICON_SMALL = 0;
 	/** Windows XP: Retrieves the small icon provided by the application. If the application does not provide one, the system uses the system-generated icon for that window. */
 	int ICON_SMALL2 = 2;
+	/**
+	 * Retrieve the rectangle for the target window.
+	 * @param hWnd the window handle
+	 * @param rect the rectangle output
+	 * @return true if successful
+	 */
+	boolean GetWindowRect(int hWnd, Rect rect);
+	/**
+	 * Bring the specified window to foreground. It will then receive keyboard and
+	 * mouse input.
+	 * @param hWnd the target window
+	 * @return success indicator
+	 */
+	boolean SetForegroundWindow(int hWnd);
+	/** Window enumeration procedure callback. */
+	interface EnumWindowsProc extends StdCallCallback {
+        /** Return whether to continue enumeration. */
+        boolean callback(int hWnd, Pointer arg);
+    }
+	/**
+	 * Enumerates all top-level windows on the screen by 
+	 * passing the handle to each window, in turn, to an application-defined 
+	 * callback function. EnumWindows continues until the last top-level window is enumerated or the callback function returns FALSE.
+	 * @param lpEnumFunc the callback
+	 * @param arg the additional argument to pass to the callback
+	 * @return true if successful
+	 */
+    boolean EnumWindows(EnumWindowsProc lpEnumFunc, Pointer arg);
+    
 }
