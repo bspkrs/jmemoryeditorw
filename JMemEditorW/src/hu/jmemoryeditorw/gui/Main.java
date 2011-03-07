@@ -174,7 +174,7 @@ public class Main extends JFrame {
 	private JComboBox processBox;
 	/** The memory layout list. */
 	@DisableOnFind
-	private JList memoryList;
+	private JList<String> memoryList;
 	/** Search value start. */
 	@SaveValue
 	@DisableOnFind
@@ -197,7 +197,7 @@ public class Main extends JFrame {
 	private JTextField addressEnd;
 	/** The list of found addresses/values. */
 	@DisableOnFind
-	private JList resultList;
+	private JList<ValueFound> resultList;
 	/** The result list label. */
 	private JLabel resultListLabel;
 	/** Filter changed values. */
@@ -272,7 +272,7 @@ public class Main extends JFrame {
 	@DisableOnFind
 	private JTextField limitCount;
 	/** The result list model. */
-	private DefaultListModel resultListModel;
+	private DefaultListModel<ValueFound> resultListModel;
 	/** The history list model. */
 	private DefaultComboBoxModel historyListModel;
 	/** The list for current findings. */
@@ -287,10 +287,10 @@ public class Main extends JFrame {
 	/** Popup menu for the results list. */
 	private JPopupMenu resultPopup;
 	/** The hold list model. */
-	private DefaultListModel holdListModel;
+	private DefaultListModel<ValueHold> holdListModel;
 	/** The hold list. */
 	@DisableOnFind
-	private JList holdList;
+	private JList<ValueHold> holdList;
 	/** The hold list label. */
 	private JLabel holdListLabel;
 	/** The hold cycle time. */
@@ -354,7 +354,7 @@ public class Main extends JFrame {
 		}
 		@Override
 		public Component getListCellRendererComponent(
-		                       JList list,
+		                       JList<?> list,
 		                       Object value,
 		                       int index,
 		                       boolean isSelected,
@@ -427,7 +427,7 @@ public class Main extends JFrame {
 				refreshProcesses();
 			}
 		});
-		memoryList = new JList(new DefaultListModel());
+		memoryList = new JList<String>(new DefaultListModel<String>());
 		memoryList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, processLabel.getFont().getSize()));
 		JScrollPane memoryListScroll = new JScrollPane(memoryList);
 		//memoryListScroll.setPreferredSize(new Dimension(200, 100));
@@ -456,18 +456,18 @@ public class Main extends JFrame {
 		resultPopup = new JPopupMenu();
 		JMenuItem 
 		mi = new JMenuItem("Use item");
-		mi.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { 
+		mi.addActionListener(new ActionListener() { @Override public void actionPerformed(ActionEvent e) { 
 			doSetAddress(); 
 		}});
 		resultPopup.add(mi);
 		
 		mi = new JMenuItem("Re-read item(s)");
-		mi.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { 
+		mi.addActionListener(new ActionListener() { @Override public void actionPerformed(ActionEvent e) { 
 			doRereadItems(); 
 		}});
 		resultPopup.add(mi);
 		mi = new JMenuItem("Remove item(s)");
-		mi.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { 
+		mi.addActionListener(new ActionListener() { @Override public void actionPerformed(ActionEvent e) { 
 			doRemoveItems(resultList);
 			setNumberOfResults(resultList.getModel().getSize());
 			addToHistory();
@@ -475,7 +475,7 @@ public class Main extends JFrame {
 		
 		resultPopup.add(mi);
 		mi = new JMenuItem("Retain item(s)");
-		mi.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { 
+		mi.addActionListener(new ActionListener() { @Override public void actionPerformed(ActionEvent e) { 
 			doRetainItems(resultList); 
 			setNumberOfResults(resultList.getModel().getSize());
 			addToHistory();
@@ -485,38 +485,38 @@ public class Main extends JFrame {
 		holdMenu = new JPopupMenu();
 
 		mi = new JMenuItem("Use");
-		mi.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { 
+		mi.addActionListener(new ActionListener() { @Override public void actionPerformed(ActionEvent e) { 
 			doHoldUse(); 
 		}});
 		holdMenu.add(mi);
 		mi = new JMenuItem("Enable");
-		mi.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { 
+		mi.addActionListener(new ActionListener() { @Override public void actionPerformed(ActionEvent e) { 
 			doHoldEnable(); 
 		}});
 		holdMenu.add(mi);
 		mi = new JMenuItem("Disable");
-		mi.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { 
+		mi.addActionListener(new ActionListener() { @Override public void actionPerformed(ActionEvent e) { 
 			doHoldDisable(); 
 		}});
 		holdMenu.add(mi);
 		
 		mi = new JMenuItem("Remove item(s)");
-		mi.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { 
+		mi.addActionListener(new ActionListener() { @Override public void actionPerformed(ActionEvent e) { 
 			doRemoveItems(holdList); 
 			setNumberOfHolds(holdList.getModel().getSize());
 		}});
 		
 		holdMenu.add(mi);
 		mi = new JMenuItem("Retain item(s)");
-		mi.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { 
+		mi.addActionListener(new ActionListener() { @Override public void actionPerformed(ActionEvent e) { 
 			doRetainItems(holdList); 
 			setNumberOfHolds(holdList.getModel().getSize());
 		}});
 		holdMenu.add(mi);
 
 		
-		resultListModel = new DefaultListModel();
-		resultList = new JList(resultListModel);
+		resultListModel = new DefaultListModel<ValueFound>();
+		resultList = new JList<ValueFound>(resultListModel);
 		resultList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, processLabel.getFont().getSize()));
 		resultList.addMouseListener(new MouseAdapter() {
 			@Override
@@ -671,8 +671,8 @@ public class Main extends JFrame {
 			}
 		});
 		holdListLabel = new JLabel();
-		holdListModel = new DefaultListModel();
-		holdList = new JList(holdListModel);
+		holdListModel = new DefaultListModel<ValueHold>();
+		holdList = new JList<ValueHold>(holdListModel);
 		holdList.setFont(resultList.getFont());
 		JScrollPane holdListScroll = new JScrollPane(holdList);
 		holdList.addMouseListener(new MouseAdapter() {
@@ -1016,7 +1016,7 @@ public class Main extends JFrame {
 	 * Action for process selection change.
 	 */
 	private void doSelectProcess() {
-		DefaultListModel mdl = (DefaultListModel)memoryList.getModel();
+		DefaultListModel<String> mdl = (DefaultListModel<String>)memoryList.getModel();
 		int idx = processBox.getSelectedIndex();
 		currentMemory.clear();
 		long sum = 0;
@@ -1727,7 +1727,7 @@ public class Main extends JFrame {
 			byte[] val1 = getValueBytes(valueStart.getText(), valueType.getSelectedIndex());
 			byte[] val2 = getValueBytes(valueEnd.getText(), valueType.getSelectedIndex());
 			for (int i = resultListModel.size() - 1; i >= 0; i--) {
-				ValueFound vf = (ValueFound)resultListModel.get(i);
+				ValueFound vf = resultListModel.get(i);
 				if (val2 != null) {
 					if (compare(val1, vf.value, valueType.getSelectedIndex()) > 0 || compare(vf.value, val2, valueType.getSelectedIndex()) > 0) {
 						resultListModel.remove(i);
@@ -1856,7 +1856,7 @@ public class Main extends JFrame {
 		HistoryListEntry e = new HistoryListEntry();
 		e.index = historyListModel.getSize() + 1;
 		for (int i = 0; i < resultListModel.size(); i++) {
-			e.values.add((ValueFound)resultListModel.get(i));
+			e.values.add(resultListModel.get(i));
 		}
 		historyListModel.addElement(e);
 		resultHistory.setSelectedIndex(historyListModel.getSize() -1);
@@ -1887,7 +1887,7 @@ public class Main extends JFrame {
 	/** Do set the address+value field according to the selection in the result list. */
 	private void doSetAddress() {
 		// save current values into the histories
-		ValueFound sel = (ValueFound)resultList.getSelectedValue();
+		ValueFound sel = resultList.getSelectedValue();
 		if (sel != null) {
 			historizeCombo(addressRW);
 			
@@ -1992,18 +1992,18 @@ public class Main extends JFrame {
 	/** Re-read selected items. */
 	private void doRereadItems() {
 		for (int i : resultList.getSelectedIndices()) {
-			ValueFound vf = (ValueFound)resultListModel.get(i);
+			ValueFound vf = resultListModel.get(i);
 			vf.prevValue = vf.value;
 			vf.value = readMemoryValue(vf.address);
 			resultListModel.set(i, vf);
 		}
 	}
 	/** Remove selected items from results and historize the remaining. */
-	private void doRemoveItems(JList list) {
+	private <T> void doRemoveItems(JList<T> list) {
 		int[] idxs = list.getSelectedIndices();
 		if (idxs.length > 0) {
 			Arrays.sort(idxs);
-			DefaultListModel mdl = (DefaultListModel)list.getModel();
+			DefaultListModel<T> mdl = (DefaultListModel<T>)list.getModel();
 			synchronized (mdl) {
 				for (int i = idxs.length - 1; i >= 0; i--) {
 					mdl.remove(idxs[i]);
@@ -2012,11 +2012,11 @@ public class Main extends JFrame {
 		}
 	}
 	/** Retain only the selected items. */
-	private void doRetainItems(JList list) {
+	private <T> void doRetainItems(JList<T> list) {
 		int[] idxs1 = list.getSelectedIndices();
 		if (idxs1.length > 0) {
 			Arrays.sort(idxs1);
-			DefaultListModel mdl = (DefaultListModel)list.getModel();
+			DefaultListModel<T> mdl = (DefaultListModel<T>)list.getModel();
 			synchronized (mdl) {
 				int[] idxs = new int[idxs1.length + 2];
 				System.arraycopy(idxs1, 0, idxs, 1, idxs1.length);
@@ -2049,7 +2049,7 @@ public class Main extends JFrame {
 			}
 			synchronized (holdListModel) {
 				for (int i = 0; i < holdListModel.size(); i++) {
-					ValueHold vh1 = (ValueHold)holdListModel.getElementAt(i);
+					ValueHold vh1 = holdListModel.getElementAt(i);
 					ValueHold vh = new ValueHold(vh1);
 					if (vh.enabled && --vh.remainingCycles <= 0) {
 						vh.remainingCycles = vh.cycleTime;
@@ -2122,7 +2122,7 @@ public class Main extends JFrame {
 	}
 	/** Select object. */
 	private void doHoldUse() {
-		ValueHold vh = (ValueHold)holdList.getSelectedValue();
+		ValueHold vh = holdList.getSelectedValue();
 		if (vh != null) {
 			synchronized (vh) {
 				addressRW.setSelectedItem(String.format("$%08X", vh.address));
@@ -2134,7 +2134,7 @@ public class Main extends JFrame {
 	private void doHoldEnable() {
 		int[] idxs = holdList.getSelectedIndices();
 		for (int i : idxs) {
-			ValueHold vh = (ValueHold)holdListModel.getElementAt(i);
+			ValueHold vh = holdListModel.getElementAt(i);
 			synchronized (vh) {
 				vh.enabled = true;
 			}
@@ -2145,7 +2145,7 @@ public class Main extends JFrame {
 	private void doHoldDisable() {
 		int[] idxs = holdList.getSelectedIndices();
 		for (int i : idxs) {
-			ValueHold vh = (ValueHold)holdListModel.getElementAt(i);
+			ValueHold vh = holdListModel.getElementAt(i);
 			synchronized (vh) {
 				vh.enabled = false;
 			}
