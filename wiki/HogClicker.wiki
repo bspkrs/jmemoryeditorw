@@ -24,3 +24,7 @@ Best option is to run your HOG game in windowed mode and start the Windows' *Mag
   # Once finished, click the *Execute* button
 
 When you click the *Execute* button, the game window will pop up after the specified delay, and after waiting again, the clicking is emulated. You may let go your mouse to let the program do its job.
+
+= Screenshot =
+
+http://jmemoryeditorw.googlecode.com/svn/trunk/JMemEditorW/doc/HogClicker-0.1.png
