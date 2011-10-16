@@ -1,4 +1,5 @@
 #summary Description of the application.
+#labels Featured
 
 <wiki:toc max_depth="1" />
 
@@ -55,8 +56,35 @@ The middle list contains the search results you may want to observe and get hint
 
 Double clicking on a line will transfer its values to the *Address* and *Value* below.
 
+The list features a popup menu with the following options:
+
+  * *Use item*: same as double clicking on a line, sets its parameters in the editors below.
+  * *Re-read item(s)*: re-read the values of the selected items only.
+  * *Remove items(s)*: remove the selected items from the list
+  * *Retain items(s)*: keep the selected items and remove everything else.
+
 = 6.) Changing a memory address =
 
 The *Address* and *Value* fields at the bottom lets you read or change a memory value. If you found an interesting memory address, use *Read* to confirm its value, the enter a new one and hit *Write*. Return to the game and look for the changes. Some games might not immediately show the new value, you may need to enter into menu or switch screens to see the difference. Some games may require you to write multiple memory addresses in order to affect the target property.
 
 = 7.) Holding values =
+
+Resetting your HP too often becomes tedious. The hold value may help you in this, which periodically checks for the memory location and adjusts it if it has deviated from the target value.
+
+The *Hold value* combobox contains three options:
+
+  * *Exactly*: whenever the value changes, just reset it to the predefined value.
+  * *At least*: if the value goes below the specified, reset it to the specified. I usually set this for properties like HP: they may decrease but will be stopped if it gets too low: avoids dying but you still may apply healing and potions as you like.
+  * *At most*: if the value goes above the specified, reset it to the specified.
+
+The *Cycle time* will set how often the held value needs to be checked in 10s of milliseconds. Setting it to high might miss a drastic change (e.g., you die), setting it to low might get your application less smooth. 10 x 10 ms is a good value.
+
+Click on the *Hold* button to start holding the value. It will be shown in the right listings (beside the results).
+
+The hold list features a popup menu as well with the following options:
+
+  * *Use*: set the address in the editors below, same as double clicking.
+  * *Enable*: allow holding the value.
+  * *Disable*: temporarily disable the hold value. Some games may require this, e.g., when your death is scripted. In this case, the value gets reset and the game breaks and won't continue properly.
+  * *Remove item(s): stop holding the selected values.
+  * *Retain item(s): keep only the selected hold items, and stop holding the rest.
