@@ -1,0 +1,27 @@
+#summary Description of the application.
+
+<wiki:toc max_depth="1" />
+
+= 1.) Selecting a process =
+
+At the top of the window, the *Process:* combobox lists the currently running applications, if an application was launched after the memory editor, use the *Refresh* to update the list. (Some exotic applications may not appear in this list, but in my experience, most games and programs do.)
+
+The bottom statusbar displays an error text if something failed. The success is indicated by a code *0 - *.
+
+= 2.) Memory layout =
+
+In experiments with Windows XP, I found out that some larger memory addresses should be avoided completely as they cause BSOD or simply hang the computer. Note that, some games are using so-called guard pages, which when read or written, cause a CPU protection fault and terminate the game to avoid cheating.
+
+The *Address start* and *Address end* optional fields may limit the search area. Use hexadecimal 32 bit numbers between 00000000 and 7FFFFFFF. If left empty, the default range is also 00000000 and 7FFFFFFF.
+
+The left side lists the memory layout of the application. Large, multi MB memory spaces, may be the areas where the program keeps its variables.
+
+= 3.) Enter values to search for =
+
+The *Value start* and *Value end* allows the user to search for values in that range. Some games store the health in floating point number and display only the whole part: HP of 89 might be stored as 89.246. Enter 88 and 91 to look for this value. It is generally advised to have a value range a bit larger than the game value: the game might round it up or down and you may just miss it by few fractions.
+
+*Note:* If you enter only the *Value start* field and leave the other empty, that counts for an exact search. E.g., you see you have 239 gold then search for 239 exactly.
+
+Select the *Value type* which the program may store the value. Generally, using Int32 and Float does the trick.
+
+The *Result limit* 
