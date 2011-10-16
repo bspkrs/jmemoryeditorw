@@ -86,5 +86,5 @@ The hold list features a popup menu as well with the following options:
   * *Use*: set the address in the editors below, same as double clicking.
   * *Enable*: allow holding the value.
   * *Disable*: temporarily disable the hold value. Some games may require this, e.g., when your death is scripted. In this case, the value gets reset and the game breaks and won't continue properly.
-  * *Remove item(s): stop holding the selected values.
-  * *Retain item(s): keep only the selected hold items, and stop holding the rest.
+  * *Remove item(s)*: stop holding the selected values.
+  * *Retain item(s)*: keep only the selected hold items, and stop holding the rest.
