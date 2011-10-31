@@ -75,6 +75,7 @@ import com.sun.jna.ptr.IntByReference;
  * @author karnokd, 2008.12.16.
  * @version $Revision 1.0$
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class Main extends JFrame {
 	/** Annotation for value saving. */
 	@Retention(RetentionPolicy.RUNTIME)
@@ -1580,7 +1581,7 @@ public class Main extends JFrame {
 			}
 			s = limitCount.getText();
 			int limit = 65536;
-			if (s == null || s.isEmpty() || limitCount.getBackground() != textFieldColor) {
+			if (s != null && !s.isEmpty()) {
 				limit = (int)getValue(s);
 			}
 			int processId = processList.get(processBox.getSelectedIndex()).ProcessID;
